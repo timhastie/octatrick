@@ -1,0 +1,6 @@
+work/
+out/
+# belt and braces: no OS bytes, ever
+*.bin
+*.syx
+*.zip
