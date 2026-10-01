@@ -199,7 +199,7 @@ say "make setup (octabam's toolchain into work/octabam/vendor; minutes the first
 if ! ( cd "$OB" && make setup ) > "$LOGS/setup.log" 2>&1; then
   tail -30 "$LOGS/setup.log"; die "make setup failed; the full log is work/logs/setup.log"
 fi
-grep -E '^(==|   )' "$LOGS/setup.log" || true
+grep -E '^== |^   (vendor/|local patch|binwalk|already built|installing|\[!\])' "$LOGS/setup.log" || true
 [ -x "$OB/vendor/elektron-firmware-tool/elektron-firmware-tool" ] \
   || die "make setup did not produce the firmware tool; read work/logs/setup.log"
 grep -a -q EFT_EMIT_CONTAINER "$OB/vendor/elektron-firmware-tool/elektron-firmware-tool" \
