@@ -1,14 +1,15 @@
 # Octatrick
 
-Four additions to the Elektron Octatrack's OS 1.40C, built into one
+Six additions to the Elektron Octatrack's OS 1.40C, built into one
 firmware image with [octabam](https://github.com/sambanks/octabam).
 
 [![Octatrick on a real Octatrack MKI](https://img.youtube.com/vi/1DqUzvs8J3U/maxresdefault.jpg)](https://www.youtube.com/watch?v=1DqUzvs8J3U)
 
 ## The modules
 
-- **SYNTH MACHINE** -- a FLEX track whose sample is named `FMSYNTH*.wav`
-  becomes a two-operator FM synth. Its PLAYBACK page reads PTCH RATO INDX
+- **SYNTH MACHINE** -- FM SYNTH, a two-operator FM synth, is a machine in
+  the track's machine list (FUNC + SRC, or SELECT MACHINE TYPE; since 2.10),
+  and a FLEX track whose sample is named `FMSYNTH*.wav` still becomes one. Its PLAYBACK page reads PTCH RATO INDX
   FINE FDBK DEC under the title FM SYNTH; the LFO page gains VOIC (1 = mono,
   2..4 = paraphonic) and CHRD (32 chord shapes, each in four inversions).
   Keys, MIDI IN and the sequencer play it; fingered chords are recorded as
@@ -23,14 +24,24 @@ firmware image with [octabam](https://github.com/sambanks/octabam).
 - **TUNER** -- hold UP and press TEMPO: a tuner window for the current
   audio track (note, octave, a +-50 cent needle, Hz). TEMPO, YES or NO
   closes it.
+- **SY DRUM** (2.11) -- a drum machine in the machine list, the row after
+  FM SYNTH: a two-oscillator percussion voice with a sweep and a filter
+  opened by the decay, six modes, PTCH MODE WDTH SWEP SPED DEC on its
+  PLAYBACK page and a dedicated LFO / S&H (LSPD LDEP WAVE S&H) on its
+  PLAYBACK SETUP page, each lockable per step (GRID and LIVE RECORDING; the
+  locks are saved beside the project's banks).
+- **PROCESSOR LOAD** (2.11) -- the TEMPO popup shows how busy the
+  ColdFire is making audio (`47%`, `!` from 70 %); FUNC held shows the
+  longest block.
 
 The `octatrick` remix adds USB MIDI and 20-channel USB audio out (tracks,
 MAIN, CUE), USB audio in onto inputs A-D with the USB CROSSBAR, and keeps
 the stock effects less SPATIALIZER. On the unit the OS version reads
 `OCTATRK<x.y>`.
 
-Runs on Tim's Octatrack MKI (every build since 26 Sep 2026); not yet
-tried on an MKII.
+The first four run on Tim's Octatrack MKI (every build since 26 Sep 2026);
+SY DRUM and PROCESSOR LOAD are emulator-verified and not yet on hardware;
+nothing is tried on an MKII yet.
 
 ## Build it
 
@@ -46,7 +57,8 @@ cd octatrick
 It clones Sam's octabam at `main`, points the four module wrappers at the
 newest tag of [octatrick-modules](https://github.com/timhastie/octatrick-modules)
 (so the image carries Tim's current modules even before octabam re-pins
-them), runs octabam's own `make setup`, downloads OS 1.40C from Elektron's
+them), makes wrappers for SY DRUM and PROCESSOR LOAD while octabam has none
+and adds both to the `octatrick` remix, runs octabam's own `make setup`, downloads OS 1.40C from Elektron's
 site (`--os <path>` to use your own copy of `OCTATRACK_OS1.40C_dist.zip`),
 and leaves two files in `out/`:
 

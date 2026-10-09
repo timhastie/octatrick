@@ -7,7 +7,9 @@
 # Default: sambanks/octabam at main (Sam's current tree, with submodules),
 #          the four Octatrick wrappers' upstream/ set to the NEWEST tag of
 #          timhastie/octatrick-modules (Tim's current modules, whether or
-#          not Sam has re-pinned yet).
+#          not Sam has re-pinned yet); SY DRUM and PROCESSOR LOAD (2.11)
+#          get wrappers made here while octabam has none, and join the
+#          octatrick remix.
 # --as-merged : exactly Sam's main, octabam's own module pins, no swap.
 # --pinned    : the octabam commit in ./octabam.pin (known good) with the
 #               newest modules tag.
@@ -26,6 +28,8 @@ set -euo pipefail
 OCTABAM_URL=https://github.com/sambanks/octabam.git
 MODULES_URL=https://github.com/timhastie/octatrick-modules.git
 WRAPPERS=(synth quantizer direct-jump tuner)
+# The 2.11 modules: directory, key, the key the remix lists it after.
+EXTRA=("sy-drum:SY DRUM:SYNTH MACHINE" "processor-load:PROCESSOR LOAD:TUNER")
 # Tags from the old OCTATRICK9 numbering; the x.y scheme restarted at 2.3,
 # so these never count as "newest".
 LEGACY_TAGS="v9.1"
@@ -127,6 +131,9 @@ else
   echo "   updating work/octabam"
   git -C "$OB" fetch -q origin
 fi
+# build.sh's own edit of the octatrick remix (SY DRUM, PROCESSOR LOAD; below)
+# is undone before the tree is checked; any other edit stops the build.
+git -C "$OB" checkout -q -- remixes/octatrick/remix.py 2>/dev/null || true
 if [ -n "$(git -C "$OB" status --porcelain --untracked-files=no --ignore-submodules)" ]; then
   die "work/octabam has local edits; move them away (or rm -rf work/octabam) and run again"
 fi
@@ -181,6 +188,52 @@ else
     echo "   newest tag $MOD_TAG = $MOD_SHA set on all four wrappers (octabam pinned $SAM_PIN${SAM_PIN_TAG:+ = $SAM_PIN_TAG})"
     echo "   if the build refuses below, Sam's wrappers are behind the tag: build with --as-merged meanwhile"
   fi
+fi
+
+# SY DRUM and PROCESSOR LOAD: until octabam carries their wrappers, a wrapper
+# is made here as octabam's four are (manifest.py re-exporting
+# upstream/<dir>/manifest.py; upstream/ = the modules at the same commit),
+# and the key joins remixes/octatrick when it is not listed there.
+if [ "$MODE" != as-merged ]; then
+  for e in "${EXTRA[@]}"; do
+    d="${e%%:*}"; rest="${e#*:}"; key="${rest%%:*}"; after="${rest#*:}"
+    if [ ! -f "$OB/modules/synth/upstream/$d/manifest.py" ]; then
+      echo "   $key: not in octatrick-modules ${MOD_TAG:-$MOD_SHA}; left out"; continue
+    fi
+    w="$OB/modules/$d"
+    if git -C "$OB" ls-files --error-unmatch "modules/$d/manifest.py" >/dev/null 2>&1; then
+      sub="$w/upstream"
+      git -C "$sub" cat-file -e "$MOD_SHA^{commit}" 2>/dev/null || git -C "$sub" fetch -q --tags origin
+      git -C "$sub" checkout -q --detach "$MOD_SHA"
+      echo "   $key: octabam's wrapper, upstream at $MOD_SHA"
+    else
+      mkdir -p "$w"
+      [ -d "$w/upstream/.git" ] || git clone -q "$OB/modules/synth/upstream" "$w/upstream"
+      git -C "$w/upstream" checkout -q --detach "$MOD_SHA"
+      cat > "$w/manifest.py" <<EOF
+"""$key -- made by timhastie/octatrick's build.sh while octabam has no wrapper
+for it: re-exports upstream/$d/manifest.py (timhastie/octatrick-modules)."""
+import pathlib
+import runpy
+
+_UPSTREAM = pathlib.Path(__file__).resolve().parent / "upstream" / "$d" / "manifest.py"
+MODULE = runpy.run_path(str(_UPSTREAM), run_name="remix_manifest_${d//-/_}")["MODULE"]
+EOF
+      echo "   $key: wrapper made in work/octabam/modules/$d (upstream at $MOD_SHA)"
+    fi
+    if ! grep -q "\"$key\"" "$OB/remixes/octatrick/remix.py"; then
+      python3 - "$OB/remixes/octatrick/remix.py" "$key" "$after" <<'PY' || die "could not add $key to remixes/octatrick"
+import sys
+p, key, after = sys.argv[1:4]
+s = open(p).read()
+a = '"%s",' % after
+if s.count(a) != 1:
+    sys.exit("remixes/octatrick lists %r %d times" % (after, s.count(a)))
+open(p, "w").write(s.replace(a, a + ' "%s",' % key, 1))
+PY
+      echo "   $key added to remixes/octatrick (undone at the next run)"
+    fi
+  done
 fi
 echo "   combining: octabam $OB_SHA + octatrick-modules ${MOD_TAG:-$MOD_SHA}"
 
