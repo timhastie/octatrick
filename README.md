@@ -66,8 +66,8 @@ changed). Details: the 2.12 entry in
 ## On hardware
 
 The first four modules run on Tim's Octatrack MKI (every build since 26
-Sep 2026). SY DRUM and PROCESSOR LOAD ran on his MKI on 10 Oct 2026 as
-2.11 builds with no issues reported (SY DRUM's one remark, the parameters
+Sep 2026). SY DRUM and PROCESSOR LOAD ran on his MKI on 10 Oct 2026 with the
+2.11 module code, as Modwerk test images, with no issues reported (SY DRUM's one remark, the parameters
 kept across a machine change, is the 2.12 init). 2.12's two fixes are
 verified on octabam's emulator and not yet on hardware. Nothing is tried
 on an MKII yet.
