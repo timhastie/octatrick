@@ -212,6 +212,8 @@ if [ "$MODE" != as-merged ]; then
     else
       mkdir -p "$w"
       [ -d "$w/upstream/.git" ] || git clone -q "$OB/modules/synth/upstream" "$w/upstream"
+      # a clone left by an earlier run lacks a newer tag's commit: fetch it from synth's upstream
+      git -C "$w/upstream" cat-file -e "$MOD_SHA^{commit}" 2>/dev/null || git -C "$w/upstream" fetch -q --tags origin
       git -C "$w/upstream" checkout -q --detach "$MOD_SHA"
       cat > "$w/manifest.py" <<EOF
 """$key -- made by timhastie/octatrick's build.sh while octabam has no wrapper
