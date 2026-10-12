@@ -1,24 +1,27 @@
 #!/usr/bin/env bash
 # Build the Octatrick firmware image from your own Octatrack OS 1.40C.
 #
-#   ./build.sh [--as-merged | --pinned] [--build N] [--version OCTATRKx.y]
+#   ./build.sh [--as-merged | --pinned] [--build N] [--version V]
 #              [--os <path>] [--modules-tag vX.Y]
 #
 # Default: sambanks/octabam at main (Sam's current tree, with submodules),
 #          the four Octatrick wrappers' upstream/ set to the NEWEST tag of
 #          timhastie/octatrick-modules (Tim's current modules, whether or
-#          not Sam has re-pinned yet); SY DRUM and PROCESSOR LOAD (2.11)
-#          get wrappers made here while octabam has none, and join the
-#          octatrick remix.
+#          not Sam has re-pinned yet); SY DRUM and PROCESSOR LOAD (since
+#          2.11) get wrappers made here while octabam has none, and join
+#          the octatrick remix.
 # --as-merged : exactly Sam's main, octabam's own module pins, no swap.
 # --pinned    : the octabam commit in ./octabam.pin (known good) with the
 #               newest modules tag.
 # --build N   : the build number the unit shows (default 1; bump per flash).
-# --version V : the OS version string, up to 10 chars (default OCTATRK<x.y>
-#               from the modules tag).
+# --version V : the OS version string, up to 10 chars. Default OCTATRK<x.y>
+#               from the modules tag; when that is longer than the field's
+#               10 characters (a two-digit minor: OCTATRK2.12 is 11), OTRICK<x.y>.
 # --os PATH   : your own OCTATRACK_OS1.40C_dist.zip (or the .syx inside it).
 #               Without it, octabam's `make os` downloads the zip from
 #               Elektron's site and checks its SHA256.
+# --modules-tag vX.Y : the octatrick-modules tag to build (default: the
+#               newest vX.Y tag, read from GitHub at each run).
 #
 # Everything lands under ./work (the octabam checkout, toolchain, OS) and
 # ./out (the two images). Nothing is written anywhere else. A built image
@@ -48,7 +51,7 @@ VERSION=""
 OS_PATH=""
 TAG_OVERRIDE=""
 
-usage() { sed -n '2,24p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '2,27p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; }
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -238,14 +241,21 @@ fi
 echo "   combining: octabam $OB_SHA + octatrick-modules ${MOD_TAG:-$MOD_SHA}"
 
 # The x.y the files are named by: the version string's, else the tag's.
-if [[ "$VERSION" =~ ^OCTATRK([0-9]+\.[0-9]+)$ ]]; then
-  XY="${BASH_REMATCH[1]}"
+if [[ "$VERSION" =~ ^(OCTATRK|OTRICK)([0-9]+\.[0-9]+)$ ]]; then
+  XY="${BASH_REMATCH[2]}"
 elif [[ "$MOD_TAG" =~ ^v([0-9]+\.[0-9]+)$ ]]; then
   XY="${BASH_REMATCH[1]}"
 else
   XY="$MOD_SHA"
 fi
-[ -n "$VERSION" ] || VERSION="OCTATRK$XY"
+# The OS version field holds 10 characters; a longer string is refused by the
+# firmware tool, which then leaves the stock 1.40C on the unit. OCTATRK<x.y>
+# fits up to x.9; from 2.10 the default is the shorter OTRICK<x.y>.
+if [ -z "$VERSION" ]; then
+  VERSION="OCTATRK$XY"
+  [ "${#VERSION}" -le 10 ] || VERSION="OTRICK$XY"
+  [ "${#VERSION}" -le 10 ] || VERSION="OCTATRICK"   # not an x.y (a bare commit): pass --version to name it
+fi
 
 # ---------------------------------------------------------------- toolchain --
 say "make setup (octabam's toolchain into work/octabam/vendor; minutes the first time: tail -f work/logs/setup.log)"

@@ -14,7 +14,11 @@ firmware image with [octabam](https://github.com/sambanks/octabam).
   2..4 = paraphonic) and CHRD (32 chord shapes, each in four inversions).
   Keys, MIDI IN and the sequencer play it; fingered chords are recorded as
   locks; LEG on the AMP SETUP page is a legato switch (MONO / POLY) and
-  GLIDE the slide time, on sample tracks too.
+  GLIDE the slide time, on sample tracks too. Since 2.12 a machine change
+  to or from FM SYNTH or SY DRUM resets the track's machine parameters
+  (PLAYBACK, PLAYBACK SETUP, AMP, LFO and their SETUP pages) to the new
+  machine's init; step and scene locks and the FX slots are kept, as at a
+  stock machine change.
 - **SCALE QUANTIZER** -- SCALE, ROOT and GLIDE rows in PROJECT > CONTROL >
   SEQUENCER: the PTCH knob, parameter locks and the CHROMATIC keys snap to
   one of 24 scales built on the root. They survive a power cycle.
@@ -37,11 +41,36 @@ firmware image with [octabam](https://github.com/sambanks/octabam).
 The `octatrick` remix adds USB MIDI and 20-channel USB audio out (tracks,
 MAIN, CUE), USB audio in onto inputs A-D with the USB CROSSBAR, and keeps
 the stock effects less SPATIALIZER. On the unit the OS version reads
-`OCTATRK<x.y>`.
+`OCTATRK<x.y>`, or `OTRICK<x.y>` when the minor has two digits (the field
+holds ten characters): 2.12 reads `OTRICK2.12`.
 
-The first four run on Tim's Octatrack MKI (every build since 26 Sep 2026);
-SY DRUM and PROCESSOR LOAD are emulator-verified and not yet on hardware;
-nothing is tried on an MKII yet.
+## What is new in 2.12
+
+Two fixes to the FM engine (SYNTH MACHINE; SY DRUM runs on the same
+engine), from Tim's test of 2.11 on his MKI:
+
+- **The metronome no longer cuts a held note.** With the metronome on and
+  the sequencer playing, a held key or chord was released at the next
+  click, and every sequencer note at the first click after it; the engine
+  had taken the metronome's click word for a STOP. The click still sounds
+  and STOP still ends the voices.
+- **A machine change resets the track's machine parameters to init** (the
+  rule in the SYNTH MACHINE entry above): no machine parameter is inherited
+  from the machine before; locks and FX slots stay, as in the stock
+  firmware. 2.10 and 2.11 projects load as they were saved.
+
+Grid steps and played notes were measured at the same level (no level
+changed). Details: the 2.12 entry in
+[octatrick-modules](https://github.com/timhastie/octatrick-modules#tags).
+
+## On hardware
+
+The first four modules run on Tim's Octatrack MKI (every build since 26
+Sep 2026). SY DRUM and PROCESSOR LOAD ran on his MKI on 10 Oct 2026 as
+2.11 builds with no issues reported (SY DRUM's one remark, the parameters
+kept across a machine change, is the 2.12 init). 2.12's two fixes are
+verified on octabam's emulator and not yet on hardware. Nothing is tried
+on an MKII yet.
 
 ## Build it
 
@@ -56,8 +85,8 @@ cd octatrick
 
 It clones Sam's octabam at `main`, points the four module wrappers at the
 newest tag of [octatrick-modules](https://github.com/timhastie/octatrick-modules)
-(so the image carries Tim's current modules even before octabam re-pins
-them), makes wrappers for SY DRUM and PROCESSOR LOAD while octabam has none
+(`v2.12` since 11 Oct 2026; so the image carries Tim's current modules even
+before octabam re-pins them), makes wrappers for SY DRUM and PROCESSOR LOAD while octabam has none
 and adds both to the `octatrick` remix, runs octabam's own `make setup`, downloads OS 1.40C from Elektron's
 site (`--os <path>` to use your own copy of `OCTATRACK_OS1.40C_dist.zip`),
 and leaves two files in `out/`:
@@ -68,10 +97,12 @@ out/OCTATRACK_OS1.40C_OCTATRICK<x.y>.syx     the MIDI image
 ```
 
 Options: `--as-merged` builds exactly Sam's main; `--pinned` builds the
-known-good octabam commit in `octabam.pin`; `--build N` sets the build
-number the unit shows (bump it each flash); `--version OCTATRKx.y` the
-version string. Everything the script makes lives under `work/` and
-`out/`.
+known-good octabam commit in `octabam.pin` (the commit the 2.12 image
+was built and checked on); `--build N` sets the build number the unit
+shows (bump it each flash); `--version V` the version string (at most ten
+characters; the default is `OCTATRK<x.y>`, or `OTRICK<x.y>` when that is
+too long); `--modules-tag vX.Y` builds another tag than the newest.
+Everything the script makes lives under `work/` and `out/`.
 
 Prerequisites (the script checks them): on macOS the Xcode Command Line
 Tools, [Homebrew](https://brew.sh), Python 3.10+ and `brew install cmake`;
@@ -95,7 +126,8 @@ GLIDE.
   (each module's README says what was measured and what was inferred).
 - The build system and the `octatrick` remix: [sambanks/octabam](https://github.com/sambanks/octabam)
   (`modules/synth`, `modules/quantizer`, `modules/direct-jump`,
-  `modules/tuner`, `remixes/octatrick`).
+  `modules/tuner`, `remixes/octatrick`); SY DRUM's and PROCESSOR LOAD's
+  wrappers are made by `build.sh` until octabam carries them.
 - An emulator with a virtual front panel: [timhastie/octa-panel](https://github.com/timhastie/octa-panel).
 
 ## Credits
