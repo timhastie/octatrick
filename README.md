@@ -21,7 +21,9 @@ firmware image with [octabam](https://github.com/sambanks/octabam).
   stock machine change.
 - **SCALE QUANTIZER** -- SCALE, ROOT and GLIDE rows in PROJECT > CONTROL >
   SEQUENCER: the PTCH knob, parameter locks and the CHROMATIC keys snap to
-  one of 24 scales built on the root. They survive a power cycle.
+  one of 24 scales built on the root. They survive a power cycle. Since
+  2.13 MIDI tracks follow SCALE and ROOT too: the NOTE knob, NOTE locks and
+  the MIDI CHROMATIC keyboard.
 - **DIRECT JUMP** -- CHAIN AFTER gains DIRECT: a pattern chosen while the
   sequencer runs starts at the next step, at the step the old one had
   reached.
@@ -42,7 +44,37 @@ The `octatrick` remix adds USB MIDI and 20-channel USB audio out (tracks,
 MAIN, CUE), USB audio in onto inputs A-D with the USB CROSSBAR, and keeps
 the stock effects less SPATIALIZER. On the unit the OS version reads
 `OCTATRK<x.y>`, or `OTRICK<x.y>` when the minor has two digits (the field
-holds ten characters): 2.12 reads `OTRICK2.12`.
+holds ten characters): 2.13 reads `OTRICK2.13`.
+
+## What is new in 2.13
+
+SCALE QUANTIZER on MIDI tracks, and a fix:
+
+- **A MIDI track follows SCALE and ROOT.** With a scale on, a MIDI
+  track's NOTE knob steps to the next note of the scale built on ROOT, as
+  PTCH does on an audio track; NOTE locks do the same (a held trig in GRID
+  RECORDING, and LIVE RECORDING); the MIDI CHROMATIC keyboard plays the
+  scale from the root: key 1 sounds the root, every key the nearest scale
+  note, and the number beside the keyboard names the root ("A 3"). The
+  note-off, the arpeggiator's input and the live recorder take the same
+  note. NOT2..4, TRAN, the arpeggiator's own notes and MIDI IN stay stock
+  (the track's ARP SETUP > KEY forces everything a MIDI track sends into a
+  key). SCALE OFF is stock; there is no new setting and projects are
+  unchanged.
+- **CHROMATIC on a MIDI track no longer freezes the unit.** Every release
+  since 2.9 froze when a MIDI track entered CHROMATIC mode (the keyboard
+  drawer's octave hook sat where stock's MIDI branch jumps into it). The
+  hook now sits at the drawer's common push, the form Modwerk's bundled
+  quantizer has carried since it found the bug (Modwerk #264; thanks to the
+  Modwerk contributors).
+- **align_check works on current octabam again.** octatrick-modules'
+  `tools/align_check.py` (no ColdFire code at an odd address, no jump to
+  one) checks the modules as bound to the remix's settings, so it can read
+  builds on today's octabam; the 2.13 image passes it.
+
+The synth, SY DRUM, TUNER, DIRECT JUMP and PROCESSOR LOAD are unchanged.
+Details: the 2.13 entry in
+[octatrick-modules](https://github.com/timhastie/octatrick-modules#tags).
 
 ## What is new in 2.12
 
@@ -68,9 +100,9 @@ changed). Details: the 2.12 entry in
 The first four modules run on Tim's Octatrack MKI (every build since 26
 Sep 2026). SY DRUM and PROCESSOR LOAD ran on his MKI on 10 Oct 2026 with the
 2.11 module code, as Modwerk test images, with no issues reported (SY DRUM's one remark, the parameters
-kept across a machine change, is the 2.12 init). 2.12's two fixes are
-verified on octabam's emulator and not yet on hardware. Nothing is tried
-on an MKII yet.
+kept across a machine change, is the 2.12 init). 2.12's two fixes and
+2.13's MIDI-track quantizer are verified on octabam's emulator and not yet
+on hardware. Nothing is tried on an MKII yet.
 
 ## Build it
 
@@ -85,7 +117,7 @@ cd octatrick
 
 It clones Sam's octabam at `main`, points the four module wrappers at the
 newest tag of [octatrick-modules](https://github.com/timhastie/octatrick-modules)
-(`v2.12` since 11 Oct 2026; so the image carries Tim's current modules even
+(`v2.13` since 12 Oct 2026; so the image carries Tim's current modules even
 before octabam re-pins them), makes wrappers for SY DRUM and PROCESSOR LOAD while octabam has none
 and adds both to the `octatrick` remix, runs octabam's own `make setup`, downloads OS 1.40C from Elektron's
 site (`--os <path>` to use your own copy of `OCTATRACK_OS1.40C_dist.zip`),
@@ -97,7 +129,7 @@ out/OCTATRACK_OS1.40C_OCTATRICK<x.y>.syx     the MIDI image
 ```
 
 Options: `--as-merged` builds exactly Sam's main; `--pinned` builds the
-known-good octabam commit in `octabam.pin` (the commit the 2.12 image
+known-good octabam commit in `octabam.pin` (the commit the 2.13 image
 was built and checked on); `--build N` sets the build number the unit
 shows (bump it each flash); `--version V` the version string (at most ten
 characters; the default is `OCTATRK<x.y>`, or `OTRICK<x.y>` when that is
