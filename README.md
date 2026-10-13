@@ -82,9 +82,11 @@ SCALE QUANTIZER on MIDI tracks, and a fix:
   scale from the root: key 1 sounds the root, every key the nearest scale
   note, and the number beside the keyboard names the root ("A 3"). The
   note-off, the arpeggiator's input and the live recorder take the same
-  note. NOT2..4, TRAN, the arpeggiator's own notes and MIDI IN stay stock
-  (the track's ARP SETUP > KEY forces everything a MIDI track sends into a
-  key). SCALE OFF is stock; there is no new setting and projects are
+  note. NOT2..4, TRAN, the arpeggiator's own notes and MIDI IN stay stock in
+  this version; an option for them to follow the scale, and a per-track
+  switch that exempts a MIDI track from the scale, are planned. Until
+  then program a drum track with SCALE OFF: stored notes are never
+  changed, only the knob, the locks and the keys snap while a scale is on. SCALE OFF is stock; there is no new setting and projects are
   unchanged.
 - **CHROMATIC on a MIDI track no longer freezes the unit.** Every release
   since 2.9 froze when a MIDI track entered CHROMATIC mode (the keyboard
