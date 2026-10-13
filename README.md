@@ -44,7 +44,32 @@ The `octatrick` remix adds USB MIDI and 20-channel USB audio out (tracks,
 MAIN, CUE), USB audio in onto inputs A-D with the USB CROSSBAR, and keeps
 the stock effects less SPATIALIZER. On the unit the OS version reads
 `OCTATRK<x.y>`, or `OTRICK<x.y>` when the minor has two digits (the field
-holds ten characters): 2.13 reads `OTRICK2.13`.
+holds ten characters): 2.14 reads `OTRICK2.14`.
+
+## What is new in 2.14
+
+SY DRUM only: a fix found in Tim's test of SY DRUM on his MKI.
+
+- **SY DRUM's step locks survive a power-off without SAVE.** PLAYBACK
+  SETUP locks (LSPD LDEP WAVE S&H) edited while the pattern played came
+  back without those edits after a power-off with no SAVE PROJECT, while
+  the PLAYBACK locks came back. Stock keeps the current bank in
+  battery-backed memory and writes its own working files only while the
+  sequencer is stopped; SY DRUM's lock files (`sylockNN.work`) were
+  written by that same save, so a power-off while playing, or within about
+  a second of STOP, found them behind. They are now written while the
+  sequencer plays too, at most once every 1.2 s and only while a lock edit
+  is unwritten. A lock edited less than about 1.2 s before a power-off can
+  still come back without that edit; SAVE PROJECT closes that window.
+- **The step locks load beside a missing or damaged stock bank file.**
+  When one of the project's stock bank files was missing, cut short or
+  damaged (stock shows its message, starts that bank empty and loads the
+  project), every bank came back without its SY DRUM step locks. The lock
+  files are now read whenever a project loads.
+
+The synth, SCALE QUANTIZER, TUNER, DIRECT JUMP and PROCESSOR LOAD are
+2.13's. Details: the 2.14 entry in
+[octatrick-modules](https://github.com/timhastie/octatrick-modules#tags).
 
 ## What is new in 2.13
 
@@ -102,7 +127,12 @@ Sep 2026). SY DRUM and PROCESSOR LOAD ran on his MKI on 10 Oct 2026 with the
 2.11 module code, as Modwerk test images, with no issues reported (SY DRUM's one remark, the parameters
 kept across a machine change, is the 2.12 init). 2.12's two fixes and
 2.13's MIDI-track quantizer are verified on octabam's emulator and not yet
-on hardware. Nothing is tried on an MKII yet.
+on hardware. 2.14's play-time write ran on his MKI on 12 Oct 2026 in a
+test build (2.13 with that write): the PLAYBACK SETUP locks edited while
+the pattern played came back after power-offs without SAVE, and a STATIC
+track streaming from the card did not crackle while SY DRUM wrote its lock
+files; 2.14's stock-bank-file case is verified on octabam's emulator.
+Nothing is tried on an MKII yet.
 
 ## Build it
 
@@ -117,7 +147,7 @@ cd octatrick
 
 It clones Sam's octabam at `main`, points the four module wrappers at the
 newest tag of [octatrick-modules](https://github.com/timhastie/octatrick-modules)
-(`v2.13` since 12 Oct 2026; so the image carries Tim's current modules even
+(`v2.14` since 13 Oct 2026; so the image carries Tim's current modules even
 before octabam re-pins them), makes wrappers for SY DRUM and PROCESSOR LOAD while octabam has none
 and adds both to the `octatrick` remix, runs octabam's own `make setup`, downloads OS 1.40C from Elektron's
 site (`--os <path>` to use your own copy of `OCTATRACK_OS1.40C_dist.zip`),
@@ -129,8 +159,8 @@ out/OCTATRACK_OS1.40C_OCTATRICK<x.y>.syx     the MIDI image
 ```
 
 Options: `--as-merged` builds exactly Sam's main; `--pinned` builds the
-known-good octabam commit in `octabam.pin` (the commit the 2.13 image
-was built and checked on); `--build N` sets the build number the unit
+known-good octabam commit in `octabam.pin` (the commit the 2.13 and 2.14
+images were built and checked on); `--build N` sets the build number the unit
 shows (bump it each flash); `--version V` the version string (at most ten
 characters; the default is `OCTATRK<x.y>`, or `OTRICK<x.y>` when that is
 too long); `--modules-tag vX.Y` builds another tag than the newest.
