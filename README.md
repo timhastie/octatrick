@@ -127,13 +127,14 @@ changed). Details: the 2.12 entry in
 The first four modules run on Tim's Octatrack MKI (every build since 26
 Sep 2026). SY DRUM and PROCESSOR LOAD ran on his MKI on 10 Oct 2026 with the
 2.11 module code, as Modwerk test images, with no issues reported (SY DRUM's one remark, the parameters
-kept across a machine change, is the 2.12 init). 2.12's two fixes and
-2.13's MIDI-track quantizer are verified on octabam's emulator and not yet
-on hardware. 2.14's play-time write ran on his MKI on 12 Oct 2026 in a
-test build (2.13 with that write): the PLAYBACK SETUP locks edited while
-the pattern played came back after power-offs without SAVE, and a STATIC
-track streaming from the card did not crackle while SY DRUM wrote its lock
-files; 2.14's stock-bank-file case is verified on octabam's emulator.
+kept across a machine change, is the 2.12 init). 2.12's two fixes,
+2.13's MIDI-track quantizer and 2.14's lock-file fix ran on his MKI on 12
+and 13 Oct 2026: the OCTATRICK 2.14 image and the Modwerk test images of
+FM Synth 0.1.5 and SY DRUM, with every item of their test sheets reported
+working. In 2.14's test the PLAYBACK SETUP locks edited while the pattern
+played came back after power-offs without SAVE, and a STATIC track
+streaming from the card did not crackle while SY DRUM wrote its lock
+files; 2.14's stock-bank-file case is verified on octabam's emulator only.
 Nothing is tried on an MKII yet.
 
 ## Build it
