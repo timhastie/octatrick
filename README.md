@@ -8,8 +8,10 @@ firmware image with [octabam](https://github.com/sambanks/octabam).
 ## The modules
 
 - **SYNTH MACHINE** -- FM SYNTH, a two-operator FM synth, is a machine in
-  the track's machine list (FUNC + SRC, or SELECT MACHINE TYPE; since 2.10),
-  and a FLEX track whose sample is named `FMSYNTH*.wav` still becomes one. Its PLAYBACK page reads PTCH RATO INDX
+  the track's machine list (FUNC + SRC, or SELECT MACHINE TYPE; since 2.10;
+  since 2.15 a FLEX track whose sample is named `FMSYNTH*.wav` plays it as a
+  sample, and the machine list refuses a choice that would take the active
+  Part past the processor's limit, see 2.15). Its PLAYBACK page reads PTCH RATO INDX
   FINE FDBK DEC under the title FM SYNTH; the LFO page gains VOIC (1 = mono,
   2..4 = paraphonic) and CHRD (32 chord shapes, each in four inversions).
   Keys, MIDI IN and the sequencer play it; fingered chords are recorded as
@@ -23,7 +25,9 @@ firmware image with [octabam](https://github.com/sambanks/octabam).
   SEQUENCER: the PTCH knob, parameter locks and the CHROMATIC keys snap to
   one of 24 scales built on the root. They survive a power cycle. Since
   2.13 MIDI tracks follow SCALE and ROOT too: the NOTE knob, NOTE locks and
-  the MIDI CHROMATIC keyboard.
+  the MIDI CHROMATIC keyboard; since 2.15 so do the chord notes NOT2..4,
+  TRAN and the arpeggiator, and rows MIDI 1 SCALE .. MIDI 8 SCALE take a
+  MIDI track out of the scale (for a drum machine).
 - **DIRECT JUMP** -- CHAIN AFTER gains DIRECT: a pattern chosen while the
   sequencer runs starts at the next step, at the step the old one had
   reached.
@@ -44,7 +48,40 @@ The `octatrick` remix adds USB MIDI and 20-channel USB audio out (tracks,
 MAIN, CUE), USB audio in onto inputs A-D with the USB CROSSBAR, and keeps
 the stock effects less SPATIALIZER. On the unit the OS version reads
 `OCTATRK<x.y>`, or `OTRICK<x.y>` when the minor has two digits (the field
-holds ten characters): 2.14 reads `OTRICK2.14`.
+holds ten characters): 2.15 reads `OTRICK2.15`.
+
+## What is new in 2.15
+
+- **A selection guard for FM SYNTH and SY DRUM.** Both render their sound
+  on the main processor; with too many of them it runs out of time and
+  the unit freezes. The machine lists now refuse a choice that would take
+  the active Part past 2 SY DRUM tracks, 1 FM SYNTH track, or FM SYNTH
+  with more than 1 SY DRUM track, and say why in the firmware's message
+  box (`SY DRUM: 2 MAX`, `FM SYNTH: 1 MAX`, `FM+SY DRUM: LIMIT`); the
+  track keeps its machine. The limits come from PROCESSOR LOAD readings on
+  Tim's MKI: everything the guard allows stays at or below a worst block
+  of about 85 % in an empty project. COPY / PASTE TRACK, the SRC page's
+  paste, the Part paste and their undo are guarded the same way (a paste
+  past the limits is refused whole, the clipboard kept). A FLEX track
+  whose sample is named `FMSYNTH*.wav` or `SYNTH*.wav` no longer becomes
+  the synth: it plays the sample, and FM SYNTH is chosen in the machine
+  list, so every FM voice is one the guard counted. A project or Part
+  saved with more (2.14 and before had no limit) loads and plays as saved.
+- **MIDI tracks play in the scale.** With SCALE and ROOT set, the chord
+  notes NOT2..4, TRAN, and the arpeggiator's notes and RNGE octaves are
+  snapped to the nearest scale note where the sequencer sends them (the
+  offsets stay semitones; two chord notes that land on one note sound
+  once; nothing hangs), and so is the chord GRID RECORDING previews with a
+  [TRIG] key + YES. Rows MIDI 1 SCALE .. MIDI 8 SCALE (ON / OFF, PROJECT >
+  CONTROL > SEQUENCER, saved with the project) take a MIDI track out of
+  the scale, for a drum machine. With SCALE OFF, or a track's row OFF, the
+  track is stock. MIDI IN thru and the auto channel's direct play stay
+  stock.
+- SY DRUM's recovered-locks message now fits the message box
+  (`SY LOCKS RECOVERED`).
+
+TUNER, DIRECT JUMP and PROCESSOR LOAD are 2.14's. Details: the 2.15 entry
+in [octatrick-modules](https://github.com/timhastie/octatrick-modules#tags).
 
 ## What is new in 2.14
 
@@ -135,7 +172,9 @@ working. In 2.14's test the PLAYBACK SETUP locks edited while the pattern
 played came back after power-offs without SAVE, and a STATIC track
 streaming from the card did not crackle while SY DRUM wrote its lock
 files; 2.14's stock-bank-file case is verified on octabam's emulator only.
-Nothing is tried on an MKII yet.
+2.15 (the selection guard and the MIDI tracks' scale) ran on his MKI on
+18 Oct 2026, with the guard's limits set from his PROCESSOR LOAD readings
+first. Nothing is tried on an MKII yet.
 
 ## Build it
 
@@ -150,7 +189,7 @@ cd octatrick
 
 It clones Sam's octabam at `main`, points the four module wrappers at the
 newest tag of [octatrick-modules](https://github.com/timhastie/octatrick-modules)
-(`v2.14` since 13 Oct 2026; so the image carries Tim's current modules even
+(`v2.15` since 18 Oct 2026; so the image carries Tim's current modules even
 before octabam re-pins them), makes wrappers for SY DRUM and PROCESSOR LOAD while octabam has none
 and adds both to the `octatrick` remix, runs octabam's own `make setup`, downloads OS 1.40C from Elektron's
 site (`--os <path>` to use your own copy of `OCTATRACK_OS1.40C_dist.zip`),
@@ -162,8 +201,8 @@ out/OCTATRACK_OS1.40C_OCTATRICK<x.y>.syx     the MIDI image
 ```
 
 Options: `--as-merged` builds exactly Sam's main; `--pinned` builds the
-known-good octabam commit in `octabam.pin` (the commit the 2.13 and 2.14
-images were built and checked on); `--build N` sets the build number the unit
+known-good octabam commit in `octabam.pin` (the commit the 2.13, 2.14 and
+2.15 images were built and checked on); `--build N` sets the build number the unit
 shows (bump it each flash); `--version V` the version string (at most ten
 characters; the default is `OCTATRK<x.y>`, or `OTRICK<x.y>` when that is
 too long); `--modules-tag vX.Y` builds another tag than the newest.
