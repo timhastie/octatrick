@@ -12,8 +12,10 @@ firmware image with [octabam](https://github.com/sambanks/octabam).
   since 2.15 a FLEX track whose sample is named `FMSYNTH*.wav` plays it as a
   sample, and the machine list refuses a choice that would take the active
   Part past the processor's limit, see 2.15). Its PLAYBACK page reads PTCH RATO INDX
-  FINE FDBK DEC under the title FM SYNTH; the LFO page gains VOIC (1 = mono,
-  2..4 = paraphonic) and CHRD (32 chord shapes, each in four inversions).
+  FINE FDBK DEC under the title FM SYNTH; its PLAYBACK SETUP page holds VOIC
+  (1 = mono, 2..4 = paraphonic) and CHRD (32 chord shapes, each in four
+  inversions), each with its own step and scene locks (since 2.17; before,
+  they sat on the LFO page in place of LFO 3, which is back).
   Keys, MIDI IN and the sequencer play it; fingered chords are recorded as
   locks; LEG on the AMP SETUP page is a legato switch (MONO / POLY) and
   GLIDE the slide time, on sample tracks too. Since 2.12 a machine change
@@ -27,7 +29,9 @@ firmware image with [octabam](https://github.com/sambanks/octabam).
   2.13 MIDI tracks follow SCALE and ROOT too: the NOTE knob, NOTE locks and
   the MIDI CHROMATIC keyboard; since 2.15 so do the chord notes NOT2..4,
   TRAN and the arpeggiator, and rows MIDI 1 SCALE .. MIDI 8 SCALE take a
-  MIDI track out of the scale (for a drum machine).
+  MIDI track out of the scale (for a drum machine); since 2.19 what an
+  audio track's sequencer plays follows the scale too, and rows AUDIO 1
+  SCALE .. AUDIO 8 SCALE take an audio track out of it.
 - **DIRECT JUMP** -- CHAIN AFTER gains DIRECT: a pattern chosen while the
   sequencer runs starts at the next step, at the step the old one had
   reached.
@@ -39,7 +43,8 @@ firmware image with [octabam](https://github.com/sambanks/octabam).
   opened by the decay, six modes, PTCH MODE WDTH SWEP SPED DEC on its
   PLAYBACK page and a dedicated LFO / S&H (LSPD LDEP WAVE S&H) on its
   PLAYBACK SETUP page, each lockable per step (GRID and LIVE RECORDING; the
-  locks are saved beside the project's banks).
+  locks are saved beside the project's banks) and, since 2.18, a scene
+  target and an LFO destination.
 - **PROCESSOR LOAD** (2.11) -- the TEMPO popup shows how busy the
   ColdFire is making audio (`47%`, `!` from 70 %); FUNC held shows the
   longest block.
@@ -48,7 +53,52 @@ The `octatrick` remix adds USB MIDI and 20-channel USB audio out (tracks,
 MAIN, CUE), USB audio in onto inputs A-D with the USB CROSSBAR, and keeps
 the stock effects less SPATIALIZER. On the unit the OS version reads
 `OCTATRK<x.y>`, or `OTRICK<x.y>` when the minor has two digits (the field
-holds ten characters): 2.15 reads `OTRICK2.15`.
+holds ten characters): 2.21 reads `OTRICK2.21`.
+
+## What is new in 2.21
+
+2.21 is the first release since 2.15. The builds 2.16 .. 2.20 between them
+were not released on their own; everything they changed is in 2.21.
+
+- **Two fixes from Tim's MKI.** With SCALE set, a chord played on the
+  chromatic trig keys of an FM SYNTH track could give different notes on
+  repeated presses: keys pressed at nearly the same instant missed the
+  scale ROOT, and a key could be paired with another press's pitch. Now
+  each key's identity and pitch are taken once, with the ROOT. And after a
+  power off and on, the first chord the sequencer played on step 1 sounded
+  as one note (saved project or not): the stock queued step 1 before the
+  bank's lock table had loaded. That step's locks are now read when it
+  plays (SY DRUM's step locks the same way).
+- **Setup values across a power-off.** An FM SYNTH VOIC / CHRD edit could
+  come back after a power-off without SAVE as the value from before it;
+  edited FM SYNTH and SY DRUM PLAYBACK SETUP values now survive it, with
+  and without SAVE.
+- **The stock DELAY's table tail is stock again.** The FM SYNTH page is a
+  DRAM unit; until 2.20 it was pinned at `0x400d24d0`, over 16 bytes the
+  stock DELAY reads past its table (found and fixed the same way by
+  Jannik Aßfalg in Modwerk #895).
+- **From 2.16 .. 2.20.** The load budget: two FM SYNTH tracks fit in a
+  Part, and the FM voices are capped so the Part fits beside SY DRUM
+  (2.16). LFO 3 is back on FM SYNTH, and VOIC and CHRD are on PLAYBACK
+  SETUP with their own step and scene locks, and are LFO destinations; a
+  2.15 / 2.16 project migrates at load (2.17). The FM SYNTH PLAYBACK SETUP
+  page loses its four unused boxes; VOIC, LEG and SY DRUM's MODE step as
+  stock few-valued boxes; a scene on VOIC or CHRD sweeps every value
+  between the two sides; the first chord after PLAY plays right; the track
+  key pressed twice on an FM SYNTH or SY DRUM track opens the machine list;
+  SY DRUM's setup controls are scene targets and LFO destinations; the
+  CHROMATIC keyboard marks the note a key sounds, and a MIDI track's
+  NOT2..4 step through the scale (2.18). What an audio track's sequencer
+  plays follows SCALE and ROOT, with AUDIO 1 SCALE .. AUDIO 8 SCALE rows;
+  the setup pages redraw on the SCENE A / B keys (2.19). Following Jan
+  Kolkmeier (Modwerk #884), the FM AMP envelope follows LFOs and scenes on
+  ATK, HOLD and REL, and an LFO on PTCH moves an FM SYNTH track's pitch 0.2
+  semitone per unit of depth, as on FLEX; and the modules' sources carry no
+  stock bytes (2.20).
+
+TUNER, DIRECT JUMP and PROCESSOR LOAD build the same code as in 2.15.
+Details: the 2.21 entry in
+[octatrick-modules](https://github.com/timhastie/octatrick-modules#tags).
 
 ## What is new in 2.15
 
@@ -174,7 +224,15 @@ streaming from the card did not crackle while SY DRUM wrote its lock
 files; 2.14's stock-bank-file case is verified on octabam's emulator only.
 2.15 (the selection guard and the MIDI tracks' scale) ran on his MKI on
 18 Oct 2026, with the guard's limits set from his PROCESSOR LOAD readings
-first. Nothing is tried on an MKII yet.
+first. The builds 2.16, 2.17 and 2.18 ran on his MKI on 22 and 24 Oct
+2026, and what he found there was fixed in the next build; 2.19 and 2.20
+were checked on octabam's emulator only. 2.21 ran on his MKI on 29 Oct
+2026: the first chord after a power off and on plays as a chord, unsaved
+and after SAVE; the chromatic-key chord with a scale and the setup values
+across a power-off were checked there on the 2.21 test builds of 27 and 28
+Oct, which carry the same code for them; the rest of what 2.16 .. 2.20
+changed is in the image but was not tested on it item by item, and the
+DELAY fix is checked on the emulator only. Nothing is tried on an MKII yet.
 
 ## Build it
 
@@ -189,7 +247,7 @@ cd octatrick
 
 It clones Sam's octabam at `main`, points the four module wrappers at the
 newest tag of [octatrick-modules](https://github.com/timhastie/octatrick-modules)
-(`v2.15` since 18 Oct 2026; so the image carries Tim's current modules even
+(`v2.21` since 29 Oct 2026; so the image carries Tim's current modules even
 before octabam re-pins them), makes wrappers for SY DRUM and PROCESSOR LOAD while octabam has none
 and adds both to the `octatrick` remix, runs octabam's own `make setup`, downloads OS 1.40C from Elektron's
 site (`--os <path>` to use your own copy of `OCTATRACK_OS1.40C_dist.zip`),
@@ -201,8 +259,8 @@ out/OCTATRACK_OS1.40C_OCTATRICK<x.y>.syx     the MIDI image
 ```
 
 Options: `--as-merged` builds exactly Sam's main; `--pinned` builds the
-known-good octabam commit in `octabam.pin` (the commit the 2.13, 2.14 and
-2.15 images were built and checked on); `--build N` sets the build number the unit
+known-good octabam commit in `octabam.pin` (the commit the 2.13, 2.14,
+2.15 and 2.21 images were built and checked on); `--build N` sets the build number the unit
 shows (bump it each flash); `--version V` the version string (at most ten
 characters; the default is `OCTATRK<x.y>`, or `OTRICK<x.y>` when that is
 too long); `--modules-tag vX.Y` builds another tag than the newest.
