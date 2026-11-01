@@ -53,7 +53,33 @@ The `octatrick` remix adds USB MIDI and 20-channel USB audio out (tracks,
 MAIN, CUE), USB audio in onto inputs A-D with the USB CROSSBAR, and keeps
 the stock effects less SPATIALIZER. On the unit the OS version reads
 `OCTATRK<x.y>`, or `OTRICK<x.y>` when the minor has two digits (the field
-holds ten characters): 2.21 reads `OTRICK2.21`.
+holds ten characters): 2.21 reads `OTRICK2.21`, 2.22 `OTRICK2.22`.
+
+## What is new in 2.22
+
+Five changes on 2.21, all in the modules; the build, octabam pin and remix
+are 2.21's.
+
+- **TRACK and FOLLOW.** SCALE QUANTIZER's sixteen per-track SCALE rows are
+  two SEQUENCER rows: TRACK picks AUDIO 1..8 or MIDI 1..8 (not saved) and
+  FOLLOW sets that track ON or OFF. The saved bits and project-file lines
+  are 2.21's, so a saved project keeps its switches.
+- **FOLLOW OFF on an FM SYNTH track** reads the scale as OFF: its keys,
+  chords and ROOT are left alone while the other tracks keep the scale.
+  Before, only ROOT was skipped and the keys were still snapped.
+- **The synth level is the engine's.** An FM SYNTH or SY DRUM track no
+  longer follows the GAIN attribute of the sample slot it is assigned to,
+  so loading a sample into that slot (or CLEAR SLOT, +12 dB) leaves the
+  level alone on the sounding note. A FLEX track on the same slot still
+  gets the slot's gain.
+- **TUNER reads a track with a DC offset.** The ring's mean is taken off
+  before the analysis, so a track whose effects leave an offset larger than
+  its swing reads a note instead of holding.
+- The synth exports the engine state the quantizer's panel transaction
+  reads whenever both are built together, not only with SY DRUM.
+
+Details: the 2.22 entry in
+[octatrick-modules](https://github.com/timhastie/octatrick-modules#tags).
 
 ## What is new in 2.21
 
@@ -232,7 +258,12 @@ and after SAVE; the chromatic-key chord with a scale and the setup values
 across a power-off were checked there on the 2.21 test builds of 27 and 28
 Oct, which carry the same code for them; the rest of what 2.16 .. 2.20
 changed is in the image but was not tested on it item by item, and the
-DELAY fix is checked on the emulator only. Nothing is tried on an MKII yet.
+DELAY fix is checked on the emulator only. 2.22 ran on his MKI on 1 Nov
+2026: the SY DRUM level with a sample loaded into its slot, FOLLOW OFF on
+an FM SYNTH track with a scale, and a 2.21 project's SCALE OFF rows read as
+FOLLOW OFF; the FM SYNTH level, the TRACK and FOLLOW rows and TUNER's DC
+case ran the same day on the Modwerk builds of the same code. Nothing is
+tried on an MKII yet.
 
 ## Build it
 
@@ -247,7 +278,7 @@ cd octatrick
 
 It clones Sam's octabam at `main`, points the four module wrappers at the
 newest tag of [octatrick-modules](https://github.com/timhastie/octatrick-modules)
-(`v2.21` since 29 Oct 2026; so the image carries Tim's current modules even
+(`v2.22` since 1 Nov 2026; so the image carries Tim's current modules even
 before octabam re-pins them), makes wrappers for SY DRUM and PROCESSOR LOAD while octabam has none
 and adds both to the `octatrick` remix, runs octabam's own `make setup`, downloads OS 1.40C from Elektron's
 site (`--os <path>` to use your own copy of `OCTATRACK_OS1.40C_dist.zip`),
