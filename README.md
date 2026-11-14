@@ -53,7 +53,27 @@ The `octatrick` remix adds USB MIDI and 20-channel USB audio out (tracks,
 MAIN, CUE), USB audio in onto inputs A-D with the USB CROSSBAR, and keeps
 the stock effects less SPATIALIZER. On the unit the OS version reads
 `OCTATRK<x.y>`, or `OTRICK<x.y>` when the minor has two digits (the field
-holds ten characters): 2.21 reads `OTRICK2.21`, 2.22 `OTRICK2.22`.
+holds ten characters): 2.22 reads `OTRICK2.22`, 2.23 `OTRICK2.23`.
+
+## What is new in 2.23
+
+Two changes on 2.22, both in the synth modules; the build, octabam pin and
+remix are 2.22's.
+
+- **Sample-only projects cost less.** Until 2.22 SYNTH MACHINE and SY DRUM
+  ran their per-block code on every audio track whether or not a track was
+  a synth. Now a project with no FM SYNTH or SY DRUM track pays almost
+  nothing for them, and with a synth track present each idle sample track
+  is skipped on its own. Sound is unchanged. On Tim's MKI, eight FLEX
+  tracks on one sample read 25 / 31 / 45 / 66 % in PROCESSOR LOAD with
+  0 / 1 / 4 / 8 tracks playing, against 33 / 39 / 63 / 75 % on 2.22
+  ([octatrick-modules#4](https://github.com/timhastie/octatrick-modules/issues/4)).
+- **FM SYNTH locks take less memory.** Step and scene locks are held in
+  lanes taken when a pattern first gets a lock. The lock files on the card
+  keep their format, so a 2.22 project loads with its locks.
+
+Details: the 2.23 entry in
+[octatrick-modules](https://github.com/timhastie/octatrick-modules#tags).
 
 ## What is new in 2.22
 
@@ -262,8 +282,11 @@ DELAY fix is checked on the emulator only. 2.22 ran on his MKI on 1 Nov
 2026: the SY DRUM level with a sample loaded into its slot, FOLLOW OFF on
 an FM SYNTH track with a scale, and a 2.21 project's SCALE OFF rows read as
 FOLLOW OFF; the FM SYNTH level, the TRACK and FOLLOW rows and TUNER's DC
-case ran the same day on the Modwerk builds of the same code. Nothing is
-tried on an MKII yet.
+case ran the same day on the Modwerk builds of the same code. 2.23 ran on
+his MKI on 14 Nov 2026: the PROCESSOR LOAD readings above, a 2.22 project's
+FM SYNTH locks with SAVE and a power-off, and a STATIC track streaming
+without a dropout while locks were edited during play. Nothing is tried on
+an MKII yet.
 
 ## Build it
 
@@ -278,7 +301,7 @@ cd octatrick
 
 It clones Sam's octabam at `main`, points the four module wrappers at the
 newest tag of [octatrick-modules](https://github.com/timhastie/octatrick-modules)
-(`v2.22` since 1 Nov 2026; so the image carries Tim's current modules even
+(`v2.23` since 14 Nov 2026; so the image carries Tim's current modules even
 before octabam re-pins them), makes wrappers for SY DRUM and PROCESSOR LOAD while octabam has none
 and adds both to the `octatrick` remix, runs octabam's own `make setup`, downloads OS 1.40C from Elektron's
 site (`--os <path>` to use your own copy of `OCTATRACK_OS1.40C_dist.zip`),
